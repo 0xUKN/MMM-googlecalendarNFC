@@ -1,6 +1,6 @@
-# Module: Google Calendar
-The `googlecalendar` module was built for the MagicMirror.
-This module displays events a google calendar account. 
+# Module: Google Calendar NFC
+The `googlecalendarNFC` module was built for the MagicMirror.
+This module displays events a google calendar account from NFC compatible Android phone. 
 This module is based on the default [calendar module](https://github.com/MichMich/MagicMirror/blob/develop/modules/default/calendar). 
 The goal was not to reinvet the wheel, but use the existing module to get data from a different source and add NFC support with an Android phone.
 
@@ -59,10 +59,9 @@ The following properties can be configured:
 3. Go to "Credentials" tab, click on "create credentials" button and select OAuth client ID. Select "Web application".
 You can now download your credentials file.
 4. Move the downloaded credentials to `config/credentials.json`.
-5. Now, go back to the `googlecalendar` module folder and edit `config/credentials.json` file.
-6. Run the Magic Mirror. Now, on you're terminal, you'll be asked to open an URL in your browser to authorise the application. Do it.
+5. Run the Magic Mirror. Now, on you're terminal, you'll be asked to open an URL in your browser to authorise the application. Do it.
 Now, copy the `code` value and paste it in terminal.
-7. You're done! Now your events should be displayed in the Magic Mirror.
+6. You're done! Now your events should be displayed in the Magic Mirror.
 
 Note: If you want to remove the account, and connect another one, just remove the `.credentials` folder that is created after you authorise the 
 module.
