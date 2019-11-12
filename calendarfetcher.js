@@ -1,5 +1,5 @@
 /*jshint node: true */
-'use strict';
+//'use strict';
 
 /* Magic Mirror
  * Node Helper: GoogleCalendar - CalendarFetcher
@@ -17,8 +17,10 @@ var moment = require('moment'),
     {google} = require('googleapis');
 
 var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'],
+    CALENDAR_IDS = ['primary'],
     TOKEN_DIR = __dirname + '/.credentials/',
-    GOOGLE_API_CONFIG_PATH = TOKEN_DIR + 'client_secret.json',
+    CONFIG_DIR = __dirname + '/config/',
+    GOOGLE_API_CONFIG_PATH = CONFIG_DIR + 'credentials.json',
     TOKEN_PATH = TOKEN_DIR + 'calendar-credentials.json';
 
 var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, maximumNumberOfDays) {
@@ -202,13 +204,10 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
      */
     var listEvents = function(auth) {
-        let calendar_ids = [
-            'webstep.no_i8smtpm3bbodi61t6ht5qvbthk@group.calendar.google.com',
-            'webstep.no_kh3h3l3uhv7pd0slgealv8pgj8@group.calendar.google.com']
 
         let promises = [];
-        for (let i=0; i<calendar_ids.length; i++) {
-            promises.push(createCalendarPromise(calendar_ids[i], auth));
+        for (let i=0; i<CALENDAR_IDS.length; i++) {
+            promises.push(createCalendarPromise(CALENDAR_IDS[i], auth));
         }
 
         // Will only run after all Promises are complete
@@ -262,12 +261,12 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      * @param {getEventsCallback} callback The callback to call with the authorized
      *     client.
      */
-    var getNewToken = function(oauth2Client, callback) {
+    var getNewToken = function(oAuth2Client, callback) {
         /* var authUrl = oauth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: SCOPES
         }); */
-        console.log("Getting new token for MMM-googlecalendar");
+        console.log("Getting new token for googlecalendar");
 
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
@@ -353,3 +352,4 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
 };
 
 module.exports = CalendarFetcher;
+

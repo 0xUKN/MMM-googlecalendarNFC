@@ -8,20 +8,15 @@
  *
  * By Luís Gomes
  * MIT Licensed.
- *
- * Updated by @asbjorn:
- * - Enable multiple Google calendars
- * - Rewrote calendarfetcher to use more up2date javascript features
  */
 
-Module.register('MMM-googlecalendar',{
+
+
+Module.register('googlecalendarNFC',{
 
     // Define module defaults
     defaults: {
         calendarName: 'googlecalendar',
-        // The unique calendarId's of the google calendar OR just 'primary' for the main calendar.
-        // Supports multiple entries.
-        calendarIds: ['primary'],
         maximumEntries: 10, // Total Maximum Entries
         maximumNumberOfDays: 365,
         displaySymbol: true,
@@ -73,7 +68,6 @@ Module.register('MMM-googlecalendar',{
     // Override socket notification handler.
     socketNotificationReceived: function(notification, payload) {
         if (notification === 'CALENDAR_EVENTS') {
-            Log.log("Received CALENDAR_EVENTS notification. Payload: ", payload);
             if (this.hasCalendarName(payload.calendarName)) {
                 this.calendarData[payload.calendarName] = payload.events;
                 this.loaded = true;
@@ -93,11 +87,11 @@ Module.register('MMM-googlecalendar',{
 
         var events = this.createEventList();
         var wrapper = document.createElement('table');
-        wrapper.className = 'large';
+        wrapper.className = 'small';
 
         if (events.length === 0) {
             wrapper.innerHTML = (this.loaded) ? this.translate('EMPTY') : this.translate('LOADING');
-            wrapper.className = 'large dimmed';
+            wrapper.className = 'small dimmed';
             return wrapper;
         }
 

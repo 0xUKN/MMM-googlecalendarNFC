@@ -33,6 +33,7 @@ build/Release
 # Dependency directories
 node_modules
 jspm_packages
+package-lock.json
 
 # Optional npm cache directory
 .npm
@@ -46,5 +47,10 @@ jspm_packages
 # Output of 'npm pack'
 *.tgz
 
-.credentials
+# Config and private datas
+.credentials/
+config/
+!config/.gitkeep
+!.credentials/.gitkeep
+
 .jshintrc

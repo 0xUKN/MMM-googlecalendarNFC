@@ -2,17 +2,18 @@
 The `googlecalendar` module was built for the MagicMirror.
 This module displays events a google calendar account. 
 This module is based on the default [calendar module](https://github.com/MichMich/MagicMirror/blob/develop/modules/default/calendar). 
-The goal was not to reinvet the wheel, but use the existing module to get data from a different source.
+The goal was not to reinvet the wheel, but use the existing module to get data from a different source and add NFC support with an Android phone.
 
 At the moment, it does not support multiple accounts. Please, feel free to fork and contribute.
 
 ## Using the module
+First, clone the repo to your MagicMirror modules directory and rename the cloned folder to `googlecalendarNFC`.
 
 To use this module, add it to the modules array in the `config/config.js` file:
 ````javascript
 modules: [
     {
-        module: "googlecalendar",
+        module: "googlecalendarNFC",
         position: "top_left",   // This can be any of the regions.
         header: "Upcomming Events"
         config: {
@@ -56,16 +57,12 @@ The following properties can be configured:
 1. Go to [Google Cloud Platform Console](https://console.cloud.google.com/apis) and create a new project.
 2. On the left sidebar, click on "Credentials" and then "Oauth consent screen". Here you'll have to fill the email address and the Product name. Save.
 3. Go to "Credentials" tab, click on "create credentials" button and select OAuth client ID. Select "Web application".
-On "Authorised redirect URIs" insert a local URL. This URL will be used by google to send your access token used to fetch calendar data. Something like "http://localhost/mmgooglecalendar" should work.
-Hit create. 
-4. Copy and store both generated client ID and secret.
-5. now, go back to the `googlecalendar` module folder and edit `config/apiInfo.json` file.
-6. Change `client_id`, `client_secret` and `redirect_uri` keys to the ones you chose in the steps above.
-7. Run the Magic Mirror. Now, on you're terminal, you'll be asked to open an URL in your browser to authorise the application. Do it. Select the
-account that you want to fetch google calendar events from. You should be redirected to the URL that you defined when setting up the project 
-on Google Cloud Platform Console (something like `http://localhost/mmgooglecalendar?code=XXXXXXXXXXXX`). 
-Now, copy the `?code` query value of the URL and paste it in terminal.
-8. You're done! Now your events should be displayed in the Magic Mirror.
+You can now download your credentials file.
+4. Move the downloaded credentials to `config/credentials.json`.
+5. Now, go back to the `googlecalendar` module folder and edit `config/credentials.json` file.
+6. Run the Magic Mirror. Now, on you're terminal, you'll be asked to open an URL in your browser to authorise the application. Do it.
+Now, copy the `code` value and paste it in terminal.
+7. You're done! Now your events should be displayed in the Magic Mirror.
 
 Note: If you want to remove the account, and connect another one, just remove the `.credentials` folder that is created after you authorise the 
 module.
