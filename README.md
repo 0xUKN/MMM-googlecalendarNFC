@@ -7,7 +7,9 @@ The goal was not to reinvet the wheel, but use the existing module to get data f
 At the moment, it does not support multiple accounts. Please, feel free to fork and contribute.
 
 ## Using the module
-First, clone the repo to your MagicMirror modules directory and rename the cloned folder to `googlecalendarNFC`.
+1. Clone the repository.
+2. Move the `googlecalendarNFC` directory to your MagicMirror modules directory.
+3. Compile the APK from the `APK_googlecalendarNFC` directory.
 
 To use this module, add it to the modules array in the `config/config.js` file:
 ````javascript
