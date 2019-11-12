@@ -8,8 +8,8 @@ At the moment, it does not support multiple accounts. Please, feel free to fork 
 
 ## Using the module
 1. Clone the repository.
-2. Move the `googlecalendarNFC` directory to your MagicMirror modules directory.
-3. Compile the APK from the `APK_googlecalendarNFC` directory.
+2. Move the `module` directory to your MagicMirror modules directory and rename it to `googlecalendarNFC`.
+3. Compile the APK from the `android` directory.
 
 To use this module, add it to the modules array in the `config/config.js` file:
 ````javascript
