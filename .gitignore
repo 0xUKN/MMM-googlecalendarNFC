@@ -48,9 +48,7 @@ package-lock.json
 *.tgz
 
 # Config and private datas
-.credentials/
 config/
 !config/.gitkeep
-!.credentials/.gitkeep
 
 .jshintrc
