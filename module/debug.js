@@ -11,7 +11,7 @@
 
 var CalendarFetcher = require('./calendarfetcher.js');
 
-var url = 'calendarNamae';
+var url = 'calendarName';
 var fetchInterval = 60 * 60 * 1000;
 var maximumEntries = 10;
 var maximumNumberOfDays = 365;

@@ -1,17 +1,17 @@
 # Module: Google Calendar NFC
 The `googlecalendarNFC` module was built for the MagicMirror.
-This module displays events a google calendar account from NFC compatible Android phone. 
+This module displays Google Calendar events from an NFC compatible Android smartphone. 
 This module is based on the default [calendar module](https://github.com/MichMich/MagicMirror/blob/develop/modules/default/calendar). 
 The goal was not to reinvet the wheel, but use the existing module to get data from a different source and add NFC support with an Android phone.
-
-At the moment, it does not support multiple accounts. Please, feel free to fork and contribute.
 
 ## Using the module
 1. Clone the repository.
 2. Move the `module` directory to your MagicMirror modules directory and rename it to `googlecalendarNFC`.
-3. Compile the APK from the `android` directory.
-
-To use this module, add it to the modules array in the `config/config.js` file:
+3. Install Node dependencies and mostly the `pcsclite` module to enable NFC interaction : `cd googlecalendarNFC && npm install`.
+You might also need to install `libpcsclite1` and `libpcsclite-dev` with apt-get, and disable the PN533 driver if you use the ACR122 NFC reader.
+4. Compile the APK from the `android` directory and sign it with your own key.
+5. Setup the Google API account you want to use (**Please see the API setup section for complementary informations !**)
+6. Add this module to the modules array in the `config/config.js` file of your MagicMirror :
 ````javascript
 modules: [
     {
@@ -26,6 +26,19 @@ modules: [
     }
 ]
 ````
+
+7. Run the Magic Mirror.
+8. Run the application and you're done ! Your events should be displayed on the Magic Mirror when you put your smartphone on the NFC reader.
+
+
+## Calendar API Setup
+
+1. Go to [Google Cloud Platform Console](https://console.cloud.google.com/apis) and create a new project.
+2. On the left sidebar, click on "Credentials" and then "Oauth consent screen". Here you'll have to fill the email address and the Product name. Save.
+3. Go to "Credentials" tab, click on "create credentials" button and select OAuth client ID. Select "Android application".
+Import the SHA-1 from the key you used to sign the Android application.
+You can now download your credentials file.
+4. Move the downloaded credentials to `config/credentials.json`.
 
 ## Configuration options
 
@@ -54,16 +67,3 @@ The following properties can be configured:
 | `hidePrivate`                | Hides private calendar events. <br><br> **Possible values:** `true` or `false` <br> **Default value:** `false`
 | `excludedEvents`             | An array of words / phrases from event titles that will be excluded from being shown. <br><br> **Example:** `['Birthday', 'Hide This Event']` <br> **Default value:** `[]`
 
-### Calendar Setup
-
-1. Go to [Google Cloud Platform Console](https://console.cloud.google.com/apis) and create a new project.
-2. On the left sidebar, click on "Credentials" and then "Oauth consent screen". Here you'll have to fill the email address and the Product name. Save.
-3. Go to "Credentials" tab, click on "create credentials" button and select OAuth client ID. Select "Web application".
-You can now download your credentials file.
-4. Move the downloaded credentials to `config/credentials.json`.
-5. Run the Magic Mirror. Now, on you're terminal, you'll be asked to open an URL in your browser to authorise the application. Do it.
-Now, copy the `code` value and paste it in terminal.
-6. You're done! Now your events should be displayed in the Magic Mirror.
-
-Note: If you want to remove the account, and connect another one, just remove the `.credentials` folder that is created after you authorise the 
-module.

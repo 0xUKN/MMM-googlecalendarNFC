@@ -1,4 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">googlecalendarNFC</string>
-    <string name="action_settings">Settings</string>
+
+    <string name="app_name">MagicMirror NFC</string>
+    <string name="header">Connect your accounts to your MagicMirror with NFC</string>
+    <string name="servicedesc">MagicMirror NFC</string>
+    <string name="aiddescription">MagicMirror NFC</string>
+
+    <string name="google_calendar_button_connect">Connect Google Calendar !</string>
+    <string name="google_calendar_button_disconnect">Disconnect Google Calendar !</string>
+
+    <string name="google_tasks_button_connect">Connect Google Tasks !</string>
+    <string name="google_tasks_button_disconnect">Disconnect Google Tasks !</string>
+
+    <string name="amazon_button_connect">Connect Amazon !</string>
+    <string name="amazon_button_disconnect">Disconnect Amazon !</string>
+
 </resources>
