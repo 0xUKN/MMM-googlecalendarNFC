@@ -8,6 +8,7 @@ The goal was not to reinvet the wheel, but use the existing module to get data f
 1. Clone the repository.
 2. Move the `module` directory to your MagicMirror modules directory and rename it to `googlecalendarNFC`.
 3. Install Node dependencies and mostly the `pcsclite` module to enable NFC interaction : `cd googlecalendarNFC && npm install`.
+Clone and compile `libnfc` from https://github.com/nfc-tools/libnfc.
 You might also need to install `libpcsclite1` and `libpcsclite-dev` with apt-get, and disable the PN533 driver if you use the ACR122 NFC reader.
 4. Compile the APK from the `android` directory and sign it with your own key.
 5. Setup the Google API account you want to use (**Please see the API setup section for complementary informations !**)
