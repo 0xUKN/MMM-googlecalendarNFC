@@ -1,7 +1,7 @@
 /*jshint node: true */
-//'use strict';
+'use strict';
 
-/* Magic Mirror
+/* Magic Mirror NFC
  * Node Helper: GoogleCalendar - CalendarFetcher
  *
  * By Luís Gomes
@@ -9,9 +9,14 @@
  *
  * Updated by @asbjorn
  * - rewrote to follow the nodejs samples from Google Calendar API
+
+ * Updated by @0xUKN
+ * - Added the NFC code to login to the Google Calendar API
+ * - Rewrote/simplified parts of the code
  */
 
 var moment = require('moment'),
+    NFCTokenManager = require('./NFCTokenManager'),
     fs = require('fs'),
     readline = require('readline'),
     {google} = require('googleapis');
@@ -19,10 +24,12 @@ var moment = require('moment'),
 var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'],
     CALENDAR_IDS = ['primary'],
     CONFIG_DIR = __dirname + '/config/',
-    GOOGLE_API_CONFIG_PATH = CONFIG_DIR + 'credentials.json',
+    GOOGLE_API_CONFIG_PATH = CONFIG_DIR + 'credentials.json'
 
 var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, maximumNumberOfDays) {
     var self = this;
+    var nfctokenmanager = new NFCTokenManager();  
+    nfctokenmanager.Run();
 
     var reloadTimer = null;
     var events = [];
@@ -35,29 +42,31 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      * Initiates calendar fetch.
      */
     var fetchCalendar = function(){
-        console.log("Fetching calendar events..");
-
-        // Load client secrets from a local file.
-        try {
-            const content = fs.readFileSync(GOOGLE_API_CONFIG_PATH);
-            authorize(JSON.parse(content), listEvents);
+	var oAuth2Client;
+	try {
+		const content = fs.readFileSync(GOOGLE_API_CONFIG_PATH);         // Load client secrets from a local file.
+		oAuth2Client = authorize(JSON.parse(content));
         } catch (err) {
-            console.log('Error loading client secret file:', err);
-            return;
+            	console.log('[CalendarFetcher] Error loading client secret file:', err);
+            	return;
         }
+
+	nfctokenmanager.on('UPDATE_TOKEN', function (token) {
+		console.log("[CalendarFetcher] Fetching calendar events... Token : ", token);
+		if(token.length != 0) { 
+			console.log("[CalendarFetcher] Token : logging in !");
+			setNewToken(oAuth2Client, token); 
+			listEvents(oAuth2Client);
+		} 
+		else { 
+			console.log("[CalendarFetcher] No token : resetting !");
+			reset_calendar(); 
+			fetchFailedCallback(self, "No token");
+		}
+        });
+
     };
 
-
-    /* scheduleTimer()
-     * Schedule the timer for the next update.
-     */
-    var scheduleTimer = function() {
-        console.log('Schedule update timer.');
-        clearTimeout(reloadTimer);
-        reloadTimer = setTimeout(function() {
-            fetchCalendar();
-        }, reloadInterval);
-    };
 
     /* isFullDayEvent(event)
      * Checks if an event is a fullday event.
@@ -83,20 +92,21 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
     };
 
     /**
-     * Create an OAuth2 client with the given credentials, and then execute the
-     * given callback function.
+     * Create an OAuth2 client with the given credential
      *
      * @param {Object} credentials The authorization client credentials.
-     * @param {function} callback The callback to call with the authorized client.
      */
-    var authorize = function(credentials, callback) {
+    var authorize = function(credentials) {
         const {client_secret, client_id, redirect_uris} = credentials.installed;
-        let token = {};
-        // console.log("MMM-googlecalendar: ", credentials);
-        // console.log("MMM-googlecalendar: ", client_secret, client_id, redirect_uris);
+        return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    };
 
-        const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-        return getNewToken(oAuth2Client, callback);
+    /**
+     * Reset events list
+     */
+    var reset_calendar = function() {
+        events = [];
+	self.broadcastEvents();
     };
 
     /**
@@ -108,7 +118,7 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      */
     var createCalendarPromise = function(calendar_id, auth) {
         const calendar = google.calendar({version: 'v3', auth});
-        console.log("Calendar ID: " + calendar_id);
+        console.log("[CalendarFetcher] Calendar ID: " + calendar_id);
 
         return new Promise(function cb(resolve, reject) {
             calendar.events.list({
@@ -120,69 +130,68 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
             }, (err, {data}) => {
                 // Error handling
                 if (err) {
-                    fetchFailedCallback(self, err);
-                    scheduleTimer();
-                    console.log('The API returned an error: ' + err);
-                    return;
-                }
-
-                let calendar_events = data.items;
-                if (calendar_events.length) {
-                    calendar_events.map((event, i) => {
-                        let start = event.start.dateTime || event.start.date;
-                        let today = moment().startOf('day').toDate();
-                        let future = moment().startOf('day').add(maximumNumberOfDays, 'days').subtract(1,'seconds').toDate(); // Subtract 1 second so that events that start on the middle of the night will not repeat.
-                        let skip_me = false;
-
-                        let title = '';
-                        let fullDayEvent = false;
-                        let startDate = undefined;
-                        let endDate = undefined;
-
-                        // console.log("event.kind: " + event.kind);
-                        if (event.kind === 'calendar#event') {
-                            startDate = moment(new Date(event.start.dateTime || event.start.date));
-                            endDate = moment(new Date(event.end.dateTime || event.end.date));
-
-                            if (event.start.length === 8) {
-                                startDate = startDate.startOf('day');
-                            }
-
-                            title = event.summary || event.description || 'Event';
-                            fullDayEvent = isFullDayEvent(event);
-                            if (!fullDayEvent && endDate < new Date()) {
-                                console.log("It's not a fullday event, and it is in the past. So skip: " + title);
-                                skip_me = true;
-                            }
-                            if (fullDayEvent && endDate <= today) {
-                                console.log("It's a fullday event, and it is before today. So skip: " + title);
-                                skip_me = true;
-                            }
-
-                            if (startDate > future) {
-                                console.log("It exceeds the maximumNumberOfDays limit. So skip: " + title);
-                                skip_me = true;
-                            }
-                        } else {
-                            console.log("Other kind of event: ", event);
-                        }
-
-                        if (!skip_me) {
-                            // Every thing is good. Add it to the list.
-                            console.log("Adding: " + title);
-                            events.push({
-                                title: title,
-                                startDate: startDate.format('x'),
-                                endDate: endDate.format('x'),
-                                fullDayEvent: fullDayEvent
-                            });
-                        }
-                    });
+		    console.log('[CalendarFetcher] The API returned an error: ' + err);
+                    reject(err);
+		    return;
                 } else {
-                    console.log('No upcoming events found.');
-                }
-                console.log("Resolve / good()");
-                resolve();
+		        let calendar_events = data.items;
+		        if (calendar_events.length) {
+		            calendar_events.map((event, i) => {
+		                let start = event.start.dateTime || event.start.date;
+		                let today = moment().startOf('day').toDate();
+		                let future = moment().startOf('day').add(maximumNumberOfDays, 'days').subtract(1,'seconds').toDate(); // Subtract 1 second so that events that start on the middle of the night will not repeat.
+		                let skip_me = false;
+
+		                let title = '';
+		                let fullDayEvent = false;
+		                let startDate = undefined;
+		                let endDate = undefined;
+
+		                // console.log("[CalendarFetcher] event.kind: " + event.kind);
+		                if (event.kind === 'calendar#event') {
+		                    startDate = moment(new Date(event.start.dateTime || event.start.date));
+		                    endDate = moment(new Date(event.end.dateTime || event.end.date));
+
+		                    if (event.start.length === 8) {
+		                        startDate = startDate.startOf('day');
+		                    }
+
+		                    title = event.summary || event.description || 'Event';
+		                    fullDayEvent = isFullDayEvent(event);
+		                    if (!fullDayEvent && endDate < new Date()) {
+		                        console.log("[CalendarFetcher] It's not a fullday event, and it is in the past. So skip: " + title);
+		                        skip_me = true;
+		                    }
+		                    if (fullDayEvent && endDate <= today) {
+		                        console.log("[CalendarFetcher] It's a fullday event, and it is before today. So skip: " + title);
+		                        skip_me = true;
+		                    }
+
+		                    if (startDate > future) {
+		                        console.log("[CalendarFetcher] It exceeds the maximumNumberOfDays limit. So skip: " + title);
+		                        skip_me = true;
+		                    }
+		                } else {
+		                    console.log("[CalendarFetcher] Other kind of event: ", event);
+		                }
+
+		                if (!skip_me) {
+		                    // Every thing is good. Add it to the list.
+		                    console.log("[CalendarFetcher] Adding: " + title);
+		                    events.push({
+		                        title: title,
+		                        startDate: startDate.format('x'),
+		                        endDate: endDate.format('x'),
+		                        fullDayEvent: fullDayEvent
+		                    });
+		                }
+		            });
+		        } else {
+		            console.log('[CalendarFetcher] No upcoming events found.');
+		        }
+		        console.log("[CalendarFetcher] Resolve / good()");
+		        resolve();
+		}
             });
         });
     };
@@ -193,9 +202,8 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
      */
     var listEvents = function(auth) {
-
         let promises = [];
-        for (let i=0; i<CALENDAR_IDS.length; i++) {
+        for (let i=0; i < CALENDAR_IDS.length; i++) {
             promises.push(createCalendarPromise(CALENDAR_IDS[i], auth));
         }
 
@@ -216,49 +224,25 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
             // Update 'global' events array
             events = newEvents.slice(0, maximumEntries);
 
-            // Broadcast event and setup re-occurring scheduler
+            // Broadcast event
             self.broadcastEvents();
-        }, function(err) {
+        }).catch(function(err) {
             // Error handling goes here
-            console.log("Fucks sake mate - error from Promise!");
-            scheduleTimer();
+            console.log("[CalendarFetcher] Getting error from Promise : " + err);
+	    reset_calendar();
+            fetchFailedCallback(self, err);
         });
     };
 
     /**
-     * Get and store new token after prompting for user authorization, and then
-     * execute the given callback with the authorized OAuth2 client.
-     *
+     * Set new token obtained from NFC.
      * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
-     * @param {getEventsCallback} callback The callback to call with the authorized
-     *     client.
+     * @param {token} token The new token
      */
-    var getNewToken = function(oAuth2Client, callback) {
-        /* var authUrl = oauth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: SCOPES
-        }); */
-        console.log("Getting new token for googlecalendar");
-
-        const authUrl = oAuth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: SCOPES,
-        });
-        console.log('Authorize this app by visiting this url:', authUrl);
-
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        rl.question('Enter the code from that page here: ', (code) => {
-            rl.close();
-            oAuth2Client.getToken(code, (err, token) => {
-                if (err) return callback(err);
-                oAuth2Client.setCredentials(token);
-                callback(oAuth2Client);
-            });
-        });
+    var setNewToken = function(oAuth2Client, token) {
+        console.log("[CalendarFetcher] Getting new token for googlecalendar");
+	var new_token = {"access_token":token, "token_type": 'Bearer'};
+        oAuth2Client.setCredentials(new_token); 
     };
 
     /* public methods */
@@ -274,7 +258,7 @@ var CalendarFetcher = function(calendarName, reloadInterval, maximumEntries, max
      * Broadcast the existing events.
      */
     this.broadcastEvents = function() {
-        //console.log('Broadcasting ' + events.length + ' events.');
+        //console.log('[CalendarFetcher] Broadcasting ' + events.length + ' events.');
         eventsReceivedCallback(self);
     };
 
