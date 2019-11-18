@@ -48,7 +48,7 @@ package-lock.json
 *.tgz
 
 # Config and private datas
-config/
+config/*
 
 .jshintrc
 
