@@ -49,8 +49,7 @@ package-lock.json
 
 # Config and private datas
 config/*
+!config/.gitkeep
 
 .jshintrc
 
-# Keep folders
-!.gitkeep
