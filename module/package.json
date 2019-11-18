@@ -14,6 +14,7 @@
   "author": "Luís Gomes",
   "license": "ISC",
   "dependencies": {
+    "electron-rebuild": "^1.8.6",
     "fs": "0.0.1-security",
     "google-auth-library": "^0.9.8",
     "googleapis": "^27.0.0",

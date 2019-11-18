@@ -7,12 +7,13 @@ The goal was not to reinvet the wheel, but use the existing module to get data f
 ## Using the module
 1. Clone the repository.
 2. Move the `module` directory to your MagicMirror modules directory and rename it to `googlecalendarNFC`.
-3. Install Node dependencies and mostly the `pcsclite` module to enable NFC interaction : `cd googlecalendarNFC && npm install`.
-Clone and compile `libnfc` from https://github.com/nfc-tools/libnfc.
-You might also need to install `libpcsclite1` and `libpcsclite-dev` with apt-get, and disable the PN533 driver if you use the ACR122 NFC reader.
-4. Compile the APK from the `android` directory and sign it with your own key.
-5. Setup the Google API account you want to use (**Please see the API setup section for complementary informations !**)
-6. Add this module to the modules array in the `config/config.js` file of your MagicMirror :
+3. Clone and compile `libnfc` from https://github.com/nfc-tools/libnfc (`autoreconf -is && ./configure && make && sudo make install`.
+4. If you use the ACR122 NFC reader, blacklist the PN533 driver (`sudo cp libnfc/contrib/linux/blacklist-libnfc.conf /etc/modprobe.d/blacklist-libnfc.conf`).
+5. Install `libpcsclite1`, `libpcsclite-dev`, `pcscd` and `pcsc-tools` (`sudo apt-get install libpcsclite1 libpcsclite-dev pcscd pcsc-tools`).
+6. Install `pcsclite` Node module to enable NFC interaction and rebuild the Electron app : `cd googlecalendarNFC && npm install && $(npm bin)/electron-rebuild`.
+7. Compile the APK from the `android` directory and sign it with your own key.
+8. Setup the Google API account you want to use (**Please see the API setup section for complementary informations !**)
+9. Add this module to the modules array in the `config/config.js` file of your MagicMirror :
 ````javascript
 modules: [
     {
@@ -27,9 +28,8 @@ modules: [
     }
 ]
 ````
-
-7. Run the Magic Mirror.
-8. Run the application and you're done ! Your events should be displayed on the Magic Mirror when you put your smartphone on the NFC reader.
+10. Run the Magic Mirror with `npm start`.
+11. Run the application and you're done ! Your events should be displayed on the Magic Mirror when you put your smartphone on the NFC reader.
 
 
 ## Calendar API Setup
